@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Binder.DataLayer;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,7 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Newtonsoft.Json;
+using System.IO;
 
 namespace Binder
 {
@@ -23,15 +25,20 @@ namespace Binder
         [DllImport("User32.dll")]
         static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
 
-        private IntPtr hWnd;
+        private readonly IntPtr hWnd;
 
+        private List<Profile> profiles;
+
+        #region Initialization
         public Form1()
         {
             InitializeComponent();
 
             hWnd = FindProcess();
-
+            
             RegisterKeys();
+
+            LoadProfilesList();
 
         }
 
@@ -48,12 +55,16 @@ namespace Binder
 
             return IntPtr.Zero;
         }
+        #endregion
+
+
+        #region Global Keys
 
         private void RegisterKeys()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 10; i++)
             {
-                RegisterHotKey(Handle, i, 0x0000, (int)Keys.NumPad1 + i);
+                RegisterHotKey(Handle, i, 0x0000, (int)Keys.NumPad0 + i);
             }
         }
 
@@ -82,9 +93,61 @@ namespace Binder
             base.WndProc(ref m);
         }
 
+        #endregion
+
         private void button1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void SaveProfileBinders(Profile profile)
+        {
+            using(StreamWriter sw = new StreamWriter($"Binders/{profile.title}.txt"))
+            {
+                sw.Write(JsonConvert.SerializeObject(profile.binds));
+            }
+        }
+
+        private void LoadProfilesList()
+        {
+            string line = string.Empty;
+            Profile profile = new Profile();
+
+            if (File.Exists("Profiles/ProfilesList.txt"))
+            {
+
+                using (StreamReader sr = new StreamReader($"Profiles/ProfilesList.txt"))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        profile = JsonConvert.DeserializeObject<Profile>(line);
+                        profiles.Add(profile);
+                        profilesComboBox.Items.Add(profile.title);
+                    }
+                }
+
+            }
+            
+
+        }
+
+        private void AddProfileButton_Click(object sender, EventArgs e)
+        {
+            
+
+            using(AddNewProfileForm addNew = new AddNewProfileForm())
+            {
+                if(addNew.ShowDialog() == DialogResult.OK)
+                {
+                    Profile profile = new Profile
+                    {
+                        title = addNew.title
+                    };
+
+                    profilesComboBox.Items.Add(profile.title);
+                    profilesComboBox.Update();
+                }
+            }
         }
     }
 }
