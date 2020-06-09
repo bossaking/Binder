@@ -29,6 +29,8 @@ namespace Binder
 
         private List<Profile> profiles;
 
+        private int allowedBinds = 3;
+
         #region Initialization
         public Form1()
         {
@@ -62,7 +64,7 @@ namespace Binder
 
         private void RegisterKeys()
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < allowedBinds; i++)
             {
                 RegisterHotKey(Handle, i, 0x0000, (int)Keys.NumPad0 + i);
             }
@@ -79,13 +81,13 @@ namespace Binder
                 switch (id)
                 {
                     case 0:
-                        SendKeys.SendWait(textBox1.Text);
+                        SendKeys.SendWait(textBox0.Text);
                         break;
                     case 1:
-                        SendKeys.SendWait(textBox2.Text);
+                        SendKeys.SendWait(textBox1.Text);
                         break;
                     case 2:
-                        SendKeys.SendWait(textBox3.Text);
+                        SendKeys.SendWait(textBox2.Text);
                         break;
                 }
             }
@@ -95,13 +97,20 @@ namespace Binder
 
         #endregion
 
-        private void button1_Click(object sender, EventArgs e)
+        private void saveButton_Click(object sender, EventArgs e)
         {
-
+            SaveProfileBinders();
         }
 
-        private void SaveProfileBinders(Profile profile)
+        private void SaveProfileBinders()
         {
+            Profile profile = new Profile(profilesComboBox.SelectedItem.ToString());
+
+            for(int i = 0; i < allowedBinds; i++)
+            {
+                profile.binds.Add((Controls.Find("textBox" + i, true).FirstOrDefault() as TextBox).Text);
+            }
+
             using(StreamWriter sw = new StreamWriter($"Binders/{profile.title}.txt"))
             {
                 sw.Write(JsonConvert.SerializeObject(profile.binds));
@@ -111,7 +120,7 @@ namespace Binder
         private void LoadProfilesList()
         {
             string line = string.Empty;
-            Profile profile = new Profile();
+            //Profile profile = new Profile();
 
             if (File.Exists("Profiles/ProfilesList.txt"))
             {
@@ -120,7 +129,7 @@ namespace Binder
                 {
                     while ((line = sr.ReadLine()) != null)
                     {
-                        profile = JsonConvert.DeserializeObject<Profile>(line);
+                        Profile profile = JsonConvert.DeserializeObject<Profile>(line);
                         profiles.Add(profile);
                         profilesComboBox.Items.Add(profile.title);
                     }
@@ -133,21 +142,32 @@ namespace Binder
 
         private void AddProfileButton_Click(object sender, EventArgs e)
         {
-            
+            AddNewProfile();
+        }
 
-            using(AddNewProfileForm addNew = new AddNewProfileForm())
+        private void AddNewProfile()
+        {
+            using (AddNewProfileForm addNew = new AddNewProfileForm())
             {
-                if(addNew.ShowDialog() == DialogResult.OK)
+                if (addNew.ShowDialog() == DialogResult.OK)
                 {
-                    Profile profile = new Profile
-                    {
-                        title = addNew.title
-                    };
+                    Profile profile = new Profile(addNew.title);
 
                     profilesComboBox.Items.Add(profile.title);
                     profilesComboBox.Update();
+
                 }
             }
+        }
+
+        private void ProfilesComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            LoadProfile((sender as ComboBox).Items[0].ToString());
+        }
+
+        private void LoadProfile(string title)
+        {
+
         }
     }
 }

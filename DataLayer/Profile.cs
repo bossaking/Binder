@@ -10,10 +10,12 @@ namespace Binder.DataLayer
     {
 
         public string title { get; set; }
-        public string path { get; set; }
-
         public List<string> binds { get; set; }
 
-
+        public Profile(string title)
+        {
+            this.title = title;
+            binds = new List<string>(10);
+        }
     }
 }
