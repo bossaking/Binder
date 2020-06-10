@@ -46,10 +46,6 @@ namespace Binder
             LoadProfilesList();
             LoadConfiguration();
 
-            
-
-            
-
         }
 
         private IntPtr FindProcess()
@@ -118,10 +114,10 @@ namespace Binder
 
                     Clipboard.SetText(bindText);
                     SendKeys.Flush();
-                    SendKeys.SendWait("^(v)");
+                    SendKeys.Send("^v");
                     if (imSend)
                     {
-                        SendKeys.SendWait("{ENTER}");
+                        SendKeys.Send("{ENTER}");
                     }
                 }
                 //SendKeys.SendWait((Controls.Find($"textBox{id}", true).First() as TextBox).Text);
