@@ -71,12 +71,11 @@
             // 
             this.profilesComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.profilesComboBox.FormattingEnabled = true;
-            this.profilesComboBox.Items.AddRange(new object[] {
-            "Default"});
             this.profilesComboBox.Location = new System.Drawing.Point(73, 13);
             this.profilesComboBox.Name = "profilesComboBox";
             this.profilesComboBox.Size = new System.Drawing.Size(125, 24);
             this.profilesComboBox.TabIndex = 4;
+            this.profilesComboBox.SelectedValueChanged += new System.EventHandler(this.ProfilesComboBox_SelectedValueChanged);
             // 
             // AddProfileButton
             // 

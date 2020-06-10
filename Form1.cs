@@ -36,11 +36,14 @@ namespace Binder
         {
             InitializeComponent();
 
+            profiles = new List<Profile>();
             hWnd = FindProcess();
             
             RegisterKeys();
 
             LoadProfilesList();
+
+            
 
         }
 
@@ -70,7 +73,7 @@ namespace Binder
             }
         }
 
-        protected override void WndProc(ref Message m)
+        protected override void WndProc(ref Message m) //handle keys and send messages
         {
             if(m.Msg == 0x0312)
             {
@@ -99,19 +102,21 @@ namespace Binder
 
         private void saveButton_Click(object sender, EventArgs e)
         {
-            SaveProfileBinders();
+            SaveProfileBinds();
         }
 
-        private void SaveProfileBinders()
+        private void SaveProfileBinds()
         {
-            Profile profile = new Profile(profilesComboBox.SelectedItem.ToString());
+            Profile profile = profiles.Find(p => p.title.Equals(profilesComboBox.SelectedItem.ToString()));
+
+            profile.binds = new List<string>(allowedBinds);
 
             for(int i = 0; i < allowedBinds; i++)
             {
                 profile.binds.Add((Controls.Find("textBox" + i, true).FirstOrDefault() as TextBox).Text);
             }
 
-            using(StreamWriter sw = new StreamWriter($"Binders/{profile.title}.txt"))
+            using(StreamWriter sw = new StreamWriter($"Binds/{profile.title}.txt"))
             {
                 sw.Write(JsonConvert.SerializeObject(profile.binds));
             }
@@ -120,7 +125,7 @@ namespace Binder
         private void LoadProfilesList()
         {
             string line = string.Empty;
-            //Profile profile = new Profile();
+            
 
             if (File.Exists("Profiles/ProfilesList.txt"))
             {
@@ -130,6 +135,7 @@ namespace Binder
                     while ((line = sr.ReadLine()) != null)
                     {
                         Profile profile = JsonConvert.DeserializeObject<Profile>(line);
+                        profile.binds = LoadProfileBinds(profile.title);
                         profiles.Add(profile);
                         profilesComboBox.Items.Add(profile.title);
                     }
@@ -138,6 +144,19 @@ namespace Binder
             }
             
 
+        }
+
+        private List<string> LoadProfileBinds(string title)
+        {
+            if (File.Exists($"Binds/{title}.txt"))
+            {
+                using(StreamReader sr = new StreamReader($"Binds/{title}.txt"))
+                {
+                    return JsonConvert.DeserializeObject<List<string>>(sr.ReadToEnd());
+                }
+            }
+
+            return new List<string>(allowedBinds);
         }
 
         private void AddProfileButton_Click(object sender, EventArgs e)
@@ -151,9 +170,16 @@ namespace Binder
             {
                 if (addNew.ShowDialog() == DialogResult.OK)
                 {
-                    Profile profile = new Profile(addNew.title);
+                    Profile profile = new Profile(addNew.title, allowedBinds);
 
                     profilesComboBox.Items.Add(profile.title);
+                    profiles.Add(profile);
+
+                    using(StreamWriter sw = new StreamWriter("Profiles/ProfilesList.txt", true))
+                    {
+                        sw.WriteLine(JsonConvert.SerializeObject(profile));
+                    }
+
                     profilesComboBox.Update();
 
                 }
@@ -162,11 +188,17 @@ namespace Binder
 
         private void ProfilesComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            LoadProfile((sender as ComboBox).Items[0].ToString());
+            ShowProfileBinds((sender as ComboBox).SelectedItem.ToString());
         }
 
-        private void LoadProfile(string title)
+        private void ShowProfileBinds(string title)
         {
+            Profile profile = profiles.Find(p => p.title.Equals(title));
+
+            for(int i = 0; i < profile.binds.Count; i++)
+            {
+                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i];
+            }
 
         }
     }

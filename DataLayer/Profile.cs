@@ -12,10 +12,13 @@ namespace Binder.DataLayer
         public string title { get; set; }
         public List<string> binds { get; set; }
 
-        public Profile(string title)
+        public Profile(string title, int allowedBinds)
         {
             this.title = title;
-            binds = new List<string>(10);
+            binds = new List<string>();
+
+            for (int i = 0; i < allowedBinds; i++)
+                binds.Add(string.Empty);
         }
     }
 }
