@@ -1,2 +1,2 @@
 # Binder
-Simple text binder for GTA V
+EXE-файл находится в папке bin/Debug.
