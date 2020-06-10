@@ -25,6 +25,16 @@ namespace Binder
         [DllImport("User32.dll")]
         static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        public const int VK_RETURN = 0x0D; //V key code
+        public const int VK_LCONTROL = 0xA2; //Left Control key code
+        public const int V = 0x56; //V key code
+
+
+
+
         private readonly IntPtr hWnd;
 
         private List<Profile> profiles;
@@ -46,6 +56,7 @@ namespace Binder
             LoadProfilesList();
             LoadConfiguration();
 
+            
         }
 
         private IntPtr FindProcess()
@@ -103,7 +114,7 @@ namespace Binder
             {
                 int id = m.WParam.ToInt32();
 
-                SetForegroundWindow(hWnd);
+                //SetForegroundWindow(hWnd);
                 Clipboard.Clear();
 
                 string bindText = (Controls.Find($"textBox{id}", true).First() as TextBox).Text;
@@ -113,21 +124,34 @@ namespace Binder
                 {
 
                     Clipboard.SetText(bindText);
-                   
-                    SendKeys.Send("(^)v");
-                    
-                    
+
+                    Paste();
+
+
                     if (imSend)
                     {
-                        SendKeys.Send("{ENTER}");
+                        Send();
                     }
-                    
+
                 }
-                //SendKeys.SendWait((Controls.Find($"textBox{id}", true).First() as TextBox).Text);
 
             }
 
             base.WndProc(ref m);
+        }
+
+        private void Paste()
+        {
+            keybd_event(VK_LCONTROL, 0, 0, 0);
+            keybd_event(V, 0, 0, 0);
+            keybd_event(V, 0, 2, 0);
+            keybd_event(VK_LCONTROL, 0, 2, 0);
+        }
+
+        private void Send()
+        {
+            keybd_event(VK_RETURN, 0, 0, 0);
+            keybd_event(VK_RETURN, 0, 2, 0);
         }
 
         #endregion
@@ -174,15 +198,10 @@ namespace Binder
                         profile.binds = LoadProfileBinds(profile.title);
                         profiles.Add(profile);
                         profilesComboBox.Items.Add(profile.title);
-
-                        
-
                     }
                 }
 
             }
-            
-
         }
 
         private List<Bind> LoadProfileBinds(string title)
