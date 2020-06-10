@@ -51,9 +51,9 @@ namespace Binder
         private IntPtr FindProcess()
         {
 
-            foreach (Process pList in Process.GetProcessesByName("GTAV"))
+            foreach (Process pList in Process.GetProcessesByName("GTA5"))
             {
-                if (pList.MainWindowTitle.Contains("RАGЕ Multiрlayer   "))
+                if (pList.MainWindowTitle.Contains("RАGЕ"))
                 {
                     return pList.MainWindowHandle;
                 }
@@ -113,12 +113,15 @@ namespace Binder
                 {
 
                     Clipboard.SetText(bindText);
-                    SendKeys.Flush();
-                    SendKeys.Send("^v");
+                   
+                    SendKeys.Send("(^)v");
+                    
+                    
                     if (imSend)
                     {
                         SendKeys.Send("{ENTER}");
                     }
+                    
                 }
                 //SendKeys.SendWait((Controls.Find($"textBox{id}", true).First() as TextBox).Text);
 
