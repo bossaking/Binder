@@ -19,8 +19,7 @@ namespace Binder
     public partial class Form1 : Form
     {
 
-        [DllImport("User32.dll")]
-        static extern int SetForegroundWindow(IntPtr point);
+        #region DLL_IMPORTS
 
         [DllImport("User32.dll")]
         static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
@@ -28,14 +27,17 @@ namespace Binder
         [DllImport("user32.dll", SetLastError = true)]
         static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
+        #endregion
+
+        #region FLAGS
+
         public const int VK_RETURN = 0x0D; //V key code
         public const int VK_LCONTROL = 0xA2; //Left Control key code
         public const int V = 0x56; //V key code
 
+        #endregion
 
-
-
-        private readonly IntPtr hWnd;
+        #region Variables
 
         private List<Profile> profiles;
 
@@ -43,13 +45,14 @@ namespace Binder
 
         private Configs configs;
 
+        #endregion
+
         #region Initialization
         public Form1()
         {
             InitializeComponent();
 
             profiles = new List<Profile>();
-            hWnd = FindProcess();
             
             RegisterKeys();
 
@@ -59,19 +62,9 @@ namespace Binder
             
         }
 
-        private IntPtr FindProcess()
-        {
+        #endregion
 
-            foreach (Process pList in Process.GetProcessesByName("GTA5"))
-            {
-                if (pList.MainWindowTitle.Contains("RАGЕ"))
-                {
-                    return pList.MainWindowHandle;
-                }
-            }
-
-            return IntPtr.Zero;
-        }
+        #region Configuration
 
         private void LoadConfiguration()
         {
@@ -87,14 +80,25 @@ namespace Binder
             else
             {
                 configs = new Configs();
-                for(int i = 0; i < allowedBinds; i++)
+                for (int i = 0; i < allowedBinds; i++)
                 {
                     Controls.Find("textBox" + i, true).First().Enabled = false;
                 }
                 saveButton.Enabled = false;
             }
-             
+
         }
+
+
+        private void SaveConfiguration()
+        {
+            using (StreamWriter sw = new StreamWriter("Configs/Conf.txt"))
+            {
+                sw.WriteLine(JsonConvert.SerializeObject(configs));
+            }
+        }
+
+
         #endregion
 
 
@@ -108,13 +112,17 @@ namespace Binder
             }
         }
 
+        #endregion
+
+        #region Click Handler
+
         protected override void WndProc(ref Message m) //handle keys and send messages
         {
             if(m.Msg == 0x0312)
             {
                 int id = m.WParam.ToInt32();
 
-                //SetForegroundWindow(hWnd);
+
                 Clipboard.Clear();
 
                 string bindText = (Controls.Find($"textBox{id}", true).First() as TextBox).Text;
@@ -156,9 +164,89 @@ namespace Binder
 
         #endregion
 
-        private void saveButton_Click(object sender, EventArgs e)
+        
+
+        #region Profiles
+
+        private void AddNewProfile()
         {
-            SaveProfileBinds();
+            using (AddNewProfileForm addNew = new AddNewProfileForm())
+            {
+                if (addNew.ShowDialog() == DialogResult.OK)
+                {
+                    Profile profile = new Profile(addNew.title, allowedBinds);
+
+                    profilesComboBox.Items.Add(profile.title);
+                    profiles.Add(profile);
+
+                    using (StreamWriter sw = new StreamWriter("Profiles/ProfilesList.txt", true))
+                    {
+                        sw.WriteLine(JsonConvert.SerializeObject(profile));
+                    }
+
+                    profilesComboBox.SelectedItem = profile.title;
+
+                    profilesComboBox.Update();
+
+                }
+            }
+        }
+
+        private void LoadProfilesList()
+        {
+            if (File.Exists("Profiles/ProfilesList.txt"))
+            {
+
+                using (StreamReader sr = new StreamReader($"Profiles/ProfilesList.txt"))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        Profile profile = JsonConvert.DeserializeObject<Profile>(line);
+                        profile.binds = LoadProfileBinds(profile.title);
+                        profiles.Add(profile);
+                        profilesComboBox.Items.Add(profile.title);
+                    }
+                }
+
+            }
+        }
+
+
+        #endregion
+
+        #region Binds
+
+        private List<Bind> LoadProfileBinds(string title)
+        {
+            List<Bind> binds = new List<Bind>();
+
+            if (File.Exists($"Binds/{title}.txt"))
+            {
+                using (StreamReader sr = new StreamReader($"Binds/{title}.txt"))
+                {
+                    return JsonConvert.DeserializeObject<List<Bind>>(sr.ReadToEnd());
+                }
+            }
+
+            for (int i = 0; i < allowedBinds; i++)
+                binds.Add(new Bind(string.Empty));
+
+            return binds;
+        }
+
+        private void ShowProfileBinds(string title)
+        {
+            Profile profile = profiles.Find(p => p.title.Equals(title));
+
+            for (int i = 0; i < profile.binds.Count; i++)
+            {
+                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i].text;
+                (Controls.Find($"checkBox{i}", true).First() as CheckBox).Checked = profile.binds[i].imSend;
+            }
+
+            configs.lastSelectedProfile = profile.title;
+            SaveConfiguration();
         }
 
         private void SaveProfileBinds()
@@ -182,46 +270,13 @@ namespace Binder
             }
         }
 
-        private void LoadProfilesList()
+        #endregion
+
+        #region Buttons Clicks
+
+        private void saveButton_Click(object sender, EventArgs e)
         {
-            string line = string.Empty;
-            
-
-            if (File.Exists("Profiles/ProfilesList.txt"))
-            {
-
-                using (StreamReader sr = new StreamReader($"Profiles/ProfilesList.txt"))
-                {
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        Profile profile = JsonConvert.DeserializeObject<Profile>(line);
-                        profile.binds = LoadProfileBinds(profile.title);
-                        profiles.Add(profile);
-                        profilesComboBox.Items.Add(profile.title);
-                    }
-                }
-
-            }
-        }
-
-        private List<Bind> LoadProfileBinds(string title)
-        {
-            List<Bind> binds = new List<Bind>();
-
-            
-
-            if (File.Exists($"Binds/{title}.txt"))
-            {
-                using(StreamReader sr = new StreamReader($"Binds/{title}.txt"))
-                {
-                    return JsonConvert.DeserializeObject<List<Bind>>(sr.ReadToEnd());
-                }
-            }
-
-            for (int i = 0; i < allowedBinds; i++)
-                binds.Add(new Bind(string.Empty));
-
-            return binds;
+            SaveProfileBinds();
         }
 
         private void AddProfileButton_Click(object sender, EventArgs e)
@@ -229,35 +284,15 @@ namespace Binder
             AddNewProfile();
         }
 
-        private void AddNewProfile()
-        {
-            using (AddNewProfileForm addNew = new AddNewProfileForm())
-            {
-                if (addNew.ShowDialog() == DialogResult.OK)
-                {
-                    Profile profile = new Profile(addNew.title, allowedBinds);
+        #endregion
 
-                    profilesComboBox.Items.Add(profile.title);
-                    profiles.Add(profile);
-
-                    using(StreamWriter sw = new StreamWriter("Profiles/ProfilesList.txt", true))
-                    {
-                        sw.WriteLine(JsonConvert.SerializeObject(profile));
-                    }
-
-                    profilesComboBox.SelectedItem = profile.title;
-
-                    profilesComboBox.Update();
-
-                }
-            }
-        }
+        #region Boxes Events
 
         private void ProfilesComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             ShowProfileBinds((sender as ComboBox).SelectedItem.ToString());
 
-            if(!textBox0.Enabled)
+            if (!textBox0.Enabled)
             {
                 for (int i = 0; i < allowedBinds; i++)
                 {
@@ -268,27 +303,6 @@ namespace Binder
             }
         }
 
-        private void ShowProfileBinds(string title)
-        {
-            Profile profile = profiles.Find(p => p.title.Equals(title));
-
-            for(int i = 0; i < profile.binds.Count; i++)
-            {
-                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i].text;
-                (Controls.Find($"checkBox{i}", true).First() as CheckBox).Checked = profile.binds[i].imSend;
-            }
-
-            configs.lastSelectedProfile = profile.title;
-            SaveConfiguration();
-        }
-
-        private void SaveConfiguration()
-        {
-            using(StreamWriter sw = new StreamWriter("Configs/Conf.txt"))
-            {
-                sw.WriteLine(JsonConvert.SerializeObject(configs));
-            }
-        }
 
         private void checkBox_CheckedChanged(object sender, EventArgs e)
         {
@@ -299,5 +313,14 @@ namespace Binder
             profile.binds[Convert.ToInt32(checkBox.Tag)].imSend = !profile.binds[Convert.ToInt32(checkBox.Tag)].imSend;
 
         }
+
+
+        #endregion
+
+
+
+
+
+
     }
 }
