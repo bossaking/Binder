@@ -111,6 +111,7 @@ namespace Binder
                 Clipboard.Clear();
 
                 string bindText = (Controls.Find($"textBox{id}", true).First() as TextBox).Text;
+                bool imSend = (Controls.Find($"checkBox{id}", true).First() as CheckBox).Checked;
 
                 if (!bindText.Equals(string.Empty))
                 {
@@ -118,6 +119,10 @@ namespace Binder
                     Clipboard.SetText(bindText);
                     SendKeys.Flush();
                     SendKeys.SendWait("^(v)");
+                    if (imSend)
+                    {
+                        SendKeys.SendWait("{ENTER}");
+                    }
                 }
                 //SendKeys.SendWait((Controls.Find($"textBox{id}", true).First() as TextBox).Text);
 
@@ -137,11 +142,15 @@ namespace Binder
         {
             Profile profile = profiles.Find(p => p.title.Equals(profilesComboBox.SelectedItem.ToString()));
 
-            profile.binds = new List<string>(allowedBinds);
+            profile.binds = new List<Bind>(allowedBinds);
 
             for(int i = 0; i < allowedBinds; i++)
             {
-                profile.binds.Add((Controls.Find("textBox" + i, true).FirstOrDefault() as TextBox).Text);
+                profile.binds.Add(new Bind((Controls.Find("textBox" + i, true).FirstOrDefault() as TextBox).Text)
+                { 
+                    imSend = (Controls.Find("checkBox" + i, true).FirstOrDefault() as CheckBox).Checked
+
+                });
             }
 
             using(StreamWriter sw = new StreamWriter($"Binds/{profile.title}.txt"))
@@ -177,20 +186,22 @@ namespace Binder
 
         }
 
-        private List<string> LoadProfileBinds(string title)
+        private List<Bind> LoadProfileBinds(string title)
         {
-            List<string> binds = new List<string>();
+            List<Bind> binds = new List<Bind>();
 
-            for (int i = 0; i < allowedBinds; i++)
-                binds.Add(string.Empty);
+            
 
             if (File.Exists($"Binds/{title}.txt"))
             {
                 using(StreamReader sr = new StreamReader($"Binds/{title}.txt"))
                 {
-                    return JsonConvert.DeserializeObject<List<string>>(sr.ReadToEnd());
+                    return JsonConvert.DeserializeObject<List<Bind>>(sr.ReadToEnd());
                 }
             }
+
+            for (int i = 0; i < allowedBinds; i++)
+                binds.Add(new Bind(string.Empty));
 
             return binds;
         }
@@ -245,7 +256,8 @@ namespace Binder
 
             for(int i = 0; i < profile.binds.Count; i++)
             {
-                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i];
+                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i].text;
+                (Controls.Find($"checkBox{i}", true).First() as CheckBox).Checked = profile.binds[i].imSend;
             }
 
             configs.lastSelectedProfile = profile.title;
@@ -258,6 +270,16 @@ namespace Binder
             {
                 sw.WriteLine(JsonConvert.SerializeObject(configs));
             }
+        }
+
+        private void checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBox = sender as CheckBox;
+
+            Profile profile = profiles.Find(p => p.title.Equals(profilesComboBox.SelectedItem));
+
+            profile.binds[Convert.ToInt32(checkBox.Tag)].imSend = !profile.binds[Convert.ToInt32(checkBox.Tag)].imSend;
+
         }
     }
 }

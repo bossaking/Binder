@@ -58,6 +58,7 @@
       <DependentUpon>AddNewProfileForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Configs.cs" />
+    <Compile Include="DataLayer\Bind.cs" />
     <Compile Include="DataLayer\Profile.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

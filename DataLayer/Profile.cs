@@ -10,15 +10,15 @@ namespace Binder.DataLayer
     {
 
         public string title { get; set; }
-        public List<string> binds { get; set; }
+        public List<Bind> binds { get; set; }
 
         public Profile(string title, int allowedBinds)
         {
             this.title = title;
-            binds = new List<string>();
+            binds = new List<Bind>();
 
             for (int i = 0; i < allowedBinds; i++)
-                binds.Add(string.Empty);
+                binds.Add(new Bind(string.Empty));
         }
     }
 }
