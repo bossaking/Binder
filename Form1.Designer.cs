@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.textBox0 = new System.Windows.Forms.TextBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
@@ -61,6 +62,8 @@
             this.checkBox7 = new System.Windows.Forms.CheckBox();
             this.checkBox8 = new System.Windows.Forms.CheckBox();
             this.checkBox9 = new System.Windows.Forms.CheckBox();
+            this.OrderCheckBox = new System.Windows.Forms.CheckBox();
+            this.SimpleCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // textBox0
@@ -363,11 +366,35 @@
             this.checkBox9.UseVisualStyleBackColor = true;
             this.checkBox9.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
+            // OrderCheckBox
+            // 
+            this.OrderCheckBox.AutoSize = true;
+            this.OrderCheckBox.Location = new System.Drawing.Point(475, 11);
+            this.OrderCheckBox.Name = "OrderCheckBox";
+            this.OrderCheckBox.Size = new System.Drawing.Size(106, 21);
+            this.OrderCheckBox.TabIndex = 33;
+            this.OrderCheckBox.Tag = "OrderCheckBox";
+            this.OrderCheckBox.Text = "Order mode";
+            this.OrderCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // SimpleCheckBox
+            // 
+            this.SimpleCheckBox.AutoSize = true;
+            this.SimpleCheckBox.Location = new System.Drawing.Point(358, 11);
+            this.SimpleCheckBox.Name = "SimpleCheckBox";
+            this.SimpleCheckBox.Size = new System.Drawing.Size(111, 21);
+            this.SimpleCheckBox.TabIndex = 34;
+            this.SimpleCheckBox.Tag = "SimpleCheckBox";
+            this.SimpleCheckBox.Text = "Simple mode";
+            this.SimpleCheckBox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(616, 412);
+            this.Controls.Add(this.SimpleCheckBox);
+            this.Controls.Add(this.OrderCheckBox);
             this.Controls.Add(this.checkBox9);
             this.Controls.Add(this.checkBox8);
             this.Controls.Add(this.checkBox7);
@@ -402,10 +429,11 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.textBox0);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Binder 1.0";
+            this.Text = "Weazel News Binder";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -446,6 +474,8 @@
         private System.Windows.Forms.CheckBox checkBox7;
         private System.Windows.Forms.CheckBox checkBox8;
         private System.Windows.Forms.CheckBox checkBox9;
+        private System.Windows.Forms.CheckBox OrderCheckBox;
+        private System.Windows.Forms.CheckBox SimpleCheckBox;
     }
 }
 

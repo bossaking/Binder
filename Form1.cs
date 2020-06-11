@@ -31,9 +31,10 @@ namespace Binder
 
         #region FLAGS
 
-        public const int VK_RETURN = 0x0D; //V key code
+        public const int VK_RETURN = 0x0D; //Enter key code
         public const int VK_LCONTROL = 0xA2; //Left Control key code
         public const int V = 0x56; //V key code
+        public const int T = 0x54; //T key code
 
         #endregion
 
@@ -44,6 +45,8 @@ namespace Binder
         private int allowedBinds = 10;
 
         private Configs configs;
+
+        private Profile actualProfile;
 
         #endregion
 
@@ -76,6 +79,8 @@ namespace Binder
                 }
 
                 profilesComboBox.SelectedItem = configs.lastSelectedProfile;
+
+                actualProfile = profiles.Find(p => p.title == configs.lastSelectedProfile);
             }
             else
             {
@@ -130,15 +135,17 @@ namespace Binder
 
                 if (!bindText.Equals(string.Empty))
                 {
-
-                    Clipboard.SetText(bindText);
-
-                    Paste();
-
-
-                    if (imSend)
+                    if (SimpleCheckBox.Checked)
                     {
-                        Send();
+                        SimpleMode(bindText, imSend);
+                    }
+                    else if (OrderCheckBox.Checked)
+                    {
+                        OrderMode(bindText);
+                    }
+                    else
+                    {
+                        NewsMode(bindText);
                     }
 
                 }
@@ -146,6 +153,12 @@ namespace Binder
             }
 
             base.WndProc(ref m);
+        }
+
+        private void OpenChat()
+        {
+            keybd_event(T, 0, 0, 0);
+            keybd_event(T, 0, 2, 0);
         }
 
         private void Paste()
@@ -164,7 +177,36 @@ namespace Binder
 
         #endregion
 
-        
+        #region Binds Algorytms
+
+        private void SimpleMode(string bindText, bool imSend)
+        {
+
+            OpenChat();
+
+            Clipboard.SetText(bindText);
+
+            Paste();
+
+            if (imSend)
+            {
+                Send();
+            }
+        }
+
+        private void NewsMode(string bindText)
+        {
+            Clipboard.SetText(bindText);
+            Paste();
+        }
+
+        private void OrderMode(string bindText)
+        {
+
+        }
+
+        #endregion
+
 
         #region Profiles
 
@@ -235,17 +277,17 @@ namespace Binder
             return binds;
         }
 
-        private void ShowProfileBinds(string title)
+        private void ShowProfileBinds()
         {
-            Profile profile = profiles.Find(p => p.title.Equals(title));
+            //Profile profile = profiles.Find(p => p.title.Equals(title));
 
-            for (int i = 0; i < profile.binds.Count; i++)
+            for (int i = 0; i < actualProfile.binds.Count; i++)
             {
-                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = profile.binds[i].text;
-                (Controls.Find($"checkBox{i}", true).First() as CheckBox).Checked = profile.binds[i].imSend;
+                (Controls.Find($"textBox{i}", true).First() as TextBox).Text = actualProfile.binds[i].text;
+                (Controls.Find($"checkBox{i}", true).First() as CheckBox).Checked = actualProfile.binds[i].imSend;
             }
 
-            configs.lastSelectedProfile = profile.title;
+            configs.lastSelectedProfile = actualProfile.title;
             SaveConfiguration();
         }
 
@@ -290,7 +332,8 @@ namespace Binder
 
         private void ProfilesComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
-            ShowProfileBinds((sender as ComboBox).SelectedItem.ToString());
+            actualProfile = profiles.Find(p => p.title == (sender as ComboBox).SelectedItem.ToString());
+            ShowProfileBinds();
 
             if (!textBox0.Enabled)
             {
@@ -306,11 +349,6 @@ namespace Binder
 
         private void checkBox_CheckedChanged(object sender, EventArgs e)
         {
-            CheckBox checkBox = sender as CheckBox;
-
-            Profile profile = profiles.Find(p => p.title.Equals(profilesComboBox.SelectedItem));
-
-            profile.binds[Convert.ToInt32(checkBox.Tag)].imSend = !profile.binds[Convert.ToInt32(checkBox.Tag)].imSend;
 
         }
 
