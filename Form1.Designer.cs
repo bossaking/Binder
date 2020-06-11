@@ -376,6 +376,7 @@
             this.OrderCheckBox.Tag = "OrderCheckBox";
             this.OrderCheckBox.Text = "Order mode";
             this.OrderCheckBox.UseVisualStyleBackColor = true;
+            this.OrderCheckBox.Visible = false;
             // 
             // SimpleCheckBox
             // 
